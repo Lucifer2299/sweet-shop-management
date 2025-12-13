@@ -1,12 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Optional
-
-from jose import jwt, JWTError
+from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -18,10 +15,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# JWT helpers
 def create_access_token(
     subject: str,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -30,30 +26,21 @@ def create_access_token(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
-    to_encode = {
+    payload = {
         "sub": subject,
         "exp": expire,
+        "type": "access",
     }
-
-    encoded_jwt = jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM,
-    )
-    return encoded_jwt
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-def decode_access_token(token: str) -> str:
-    try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM],
-        )
-        subject: str = payload.get("sub")
-        if subject is None:
-            raise JWTError()
-        return subject
-    except JWTError:
-        raise
+def create_refresh_token(subject: str) -> str:
+    expire = datetime.utcnow() + timedelta(days=7)
+
+    payload = {
+        "sub": subject,
+        "exp": expire,
+        "type": "refresh",
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

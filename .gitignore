@@ -1,15 +1,15 @@
 # Python
+backend/venv/
 __pycache__/
 *.pyc
-
-# Virtual environment
-venv/
-
-# Databases
 *.db
 
-# Pytest
-.pytest_cache/
+# Node
+node_modules/
+dist/
+
+# Env
+.env
 
 # OS
 .DS_Store

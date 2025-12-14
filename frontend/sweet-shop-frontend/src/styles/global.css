@@ -1,0 +1,45 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f6f7fb;
+}
+
+.page {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.card input,
+.card button {
+  padding: 10px;
+}
+
+.card button {
+  background: #6c5ce7;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.sweet-card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+

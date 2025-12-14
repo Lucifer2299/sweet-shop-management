@@ -1,13 +1,63 @@
-from typing import Generator
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from jose import JWTError
 
-from app.db.session import SessionLocal
+from app.db.session import get_db
+from app.models.user import User
+from app.core.security import decode_access_token
+
+# OAuth2 scheme (MANDATORY)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
+# -------------------------------------------------
+# Get current authenticated user
+# -------------------------------------------------
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User:
     try:
-        yield db
-    finally:
-        db.close()
+        payload = decode_access_token(token)
+        email: str | None = payload.get("sub")
+
+        if email is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token",
+            )
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    return user
+
+
+# -------------------------------------------------
+# Role-based access control
+# -------------------------------------------------
+def require_role(*allowed_roles: str):
+    def role_dependency(
+        current_user: User = Depends(get_current_user),
+    ) -> User:
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+
+    return role_dependency
 

@@ -1,6 +1,6 @@
-from sqlalchemy.orm import DeclarativeBase
+from app.db.base_class import Base
 
-
-class Base(DeclarativeBase):
-    pass
+from app.models.user import User
+from app.models.refresh_token import RefreshToken
+from app.models.sweet import Sweet
 
